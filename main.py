@@ -52,7 +52,7 @@ def search_square_polynomial_coefficients(x, y, m):
     return cPoly
 
 
-def create_square_polynomial(c, x):
+def create_polynomial(c, x):
     polynomial = 0
     for i in range(len(c)):
         polynomial += c[i] * x ** i
@@ -94,42 +94,59 @@ def parabola_method(func, n):
     return h / 3 * integral
 
 
-args = [0, 1, 2, 3]
+def central_diff_ratio(m, x, y):
+    i = 0
+    for j in range(1, len(x) - 1):
+        if x[j - 1] <= m < x[j + 1]:
+            i = j
+            break
+    return 0.5 * (y[i + 1] - y[i - 1]) / (x[i + 1] - x[i])
+
+
+X = [0, 1, 2, 3]
 Y = [0, 6, 3, 5]
-coefficients = [0.955, -0.687, -0.150, 0.352]
-X = np.arange(0, 3.01, 0.01)
+point = 2.34
+args = np.arange(0, 3.01, 0.01)
 
 plt.title('interpolate')
-plt.plot(X, lagrange(args, Y, X), '--', label='lagrange')
-plt.plot(X, newton(args, Y, X), 'g-', label='newton')
+plt.plot(args, lagrange(X, Y, args), '--', label='lagrange')
+plt.plot(args, newton(X, Y, args), 'g-', label='newton')
 
-tck = scipy.interpolate.splrep(args, Y)
+tck = scipy.interpolate.splrep(X, Y)
 sp_y = scipy.interpolate.splev(args, tck)
 plt.plot(args, sp_y, label='spline')
 
-poly = search_square_polynomial_coefficients(args, Y, 5)
-plt.plot(X, create_square_polynomial(poly, X), 'b--', label='Square interpolation (m=5)')
-poly_SLAE = search_coefficients_SLAE(args, Y, 4)
-plt.plot(X, create_square_polynomial(poly_SLAE, X), 'r--', label='SLAE interpolation')
+poly = search_square_polynomial_coefficients(X, Y, 5)
+plt.plot(args, create_polynomial(poly, args), 'b--', label='Square interpolation (m=5)')
+poly_SLAE = search_coefficients_SLAE(X, Y, 4)
+plt.plot(args, create_polynomial(poly_SLAE, args), 'r--', label='SLAE interpolation')
 plt.grid()
 plt.legend()
 plt.show()
 
-new_X = np.arange(0, 5.01, 0.01)
+new_args = np.arange(0, 5.01, 0.01)
 plt.title('extrapolate')
-f = scipy.interpolate.interp1d(args, Y, fill_value='extrapolate')
-plt.plot(new_X, f(new_X), label='spline extrapolate')
-plt.plot(new_X, lagrange(args, Y, new_X), '--', label='lagrange')
-plt.plot(new_X, newton(args, Y, new_X), 'g-', label='newton')
-plt.plot(new_X, create_square_polynomial(poly, new_X), 'b--', label='Square')
-plt.plot(new_X, create_square_polynomial(poly_SLAE, new_X), 'r--', label='SLAE')
+spline = scipy.interpolate.interp1d(X, Y, fill_value='extrapolate')
+plt.plot(new_args, spline(new_args), label='spline extrapolate')
+plt.plot(new_args, lagrange(X, Y, new_args), '--', label='lagrange')
+plt.plot(new_args, newton(X, Y, new_args), 'g-', label='newton')
+plt.plot(new_args, create_polynomial(poly, new_args), 'b--', label='Square')
+plt.plot(new_args, create_polynomial(poly_SLAE, new_args), 'r--', label='SLAE')
 plt.grid()
 plt.legend()
 plt.show()
 
+step = 10
 print('Integral:')
-print('Lagrange ', parabola_method(lambda x: lagrange(args, Y, x), 10))
-print('Newton ', parabola_method(lambda x: newton(args, Y, x), 10))
-print('Square ', parabola_method(lambda x: create_square_polynomial(poly, x), 10))
-print('SLAE ', parabola_method(lambda x: create_square_polynomial(poly_SLAE, x), 10))
-print('Spline ', parabola_method(f, 10))
+print('Lagrange ', parabola_method(lambda x: lagrange(X, Y, x), step))
+print('Newton ', parabola_method(lambda x: newton(X, Y, x), step))
+print('Square ', parabola_method(lambda x: create_polynomial(poly, x), step))
+print('SLAE ', parabola_method(lambda x: create_polynomial(poly_SLAE, x), step))
+print('Spline ', parabola_method(lambda x: scipy.interpolate.splev(x, tck), step))
+
+print('\nDerivative x = ', point)
+print(central_diff_ratio(point, args, lagrange(X, Y, args)))
+print(central_diff_ratio(point, args, newton(X, Y, args)))
+print(central_diff_ratio(point, args, create_polynomial(poly, args)))
+print(central_diff_ratio(point, args, create_polynomial(poly_SLAE, args)))
+print(central_diff_ratio(point, args, sp_y))
