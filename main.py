@@ -30,33 +30,26 @@ def lagrange(x, y, x0):
     return a1 + a2 + a3 + a4
 
 
-def newton_poly(x, newP, newC):
-    b0, b1, b2, b3 = newC[0], newC[1], newC[2], newC[3]
-    x0, x1, x2 = newP[0], newP[1], newP[2]
-    return b0 + b1 * (x - x0) + b2 * (x - x0) * (x - x1) + b3 * (x - x0) * (x - x1) * (x - x2)
-
-
 def search_square_polynomial_coefficients(x, y, m):
+    def MakeSystem(xy_list, basis):
+        matrix = [[0] * basis for _ in range(basis)]
+        right_side_of_matrix = [0] * basis
+        for i in range(basis):
+            for j in range(basis):
+                sumA, sumB = 0, 0
+                for k in range(len(xy_list)):
+                    sumA += xy_list[k][0] ** (i + j)
+                    sumB += xy_list[k][1] * xy_list[k][0] ** i
+                matrix[i][j] = sumA
+                right_side_of_matrix[i] = sumB
+        return matrix, right_side_of_matrix
+
     xy = []
     for k in range(len(x)):
         xy.append([x[k], y[k]])
     matrix, r_side_of_matrix = MakeSystem(xy, m)
     cPoly = np.linalg.solve(matrix, r_side_of_matrix)
     return cPoly
-
-
-def MakeSystem(xy_list, basis):
-    matrix = [[0] * basis for _ in range(basis)]
-    right_side_of_matrix = [0] * basis
-    for i in range(basis):
-        for j in range(basis):
-            sumA, sumB = 0, 0
-            for k in range(len(xy_list)):
-                sumA += xy_list[k][0] ** (i + j)
-                sumB += xy_list[k][1] * xy_list[k][0] ** i
-            matrix[i][j] = sumA
-            right_side_of_matrix[i] = sumB
-    return matrix, right_side_of_matrix
 
 
 def create_square_polynomial(c, x):
@@ -67,22 +60,21 @@ def create_square_polynomial(c, x):
 
 
 def search_coefficients_SLAE(x, y, m):
+    def make_system_SLAE(points, basis):
+        matrix = [[0] * basis for _ in range(basis)]
+        right_side_of_matrix = [0] * basis
+        for i in range(basis):
+            for j in range(basis):
+                matrix[i][j] = points[i][0] ** j
+            right_side_of_matrix[i] = points[i][1]
+        return matrix, right_side_of_matrix
+
     xy = []
     for k in range(len(x)):
         xy.append([x[k], y[k]])
     matrix, r_side_of_matrix = make_system_SLAE(xy, m)
     coeff_poly = np.linalg.solve(matrix, r_side_of_matrix)
     return coeff_poly
-
-
-def make_system_SLAE(points, basis):
-    matrix = [[0] * basis for _ in range(basis)]
-    right_side_of_matrix = [0] * basis
-    for i in range(basis):
-        for j in range(basis):
-            matrix[i][j] = points[i][0] ** j
-        right_side_of_matrix[i] = points[i][1]
-    return matrix, right_side_of_matrix
 
 
 args = [0, 1, 2, 3]
