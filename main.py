@@ -77,6 +77,23 @@ def search_coefficients_SLAE(x, y, m):
     return coeff_poly
 
 
+def parabola_method(func, n):
+    a = 0
+    b = 3
+    if n % 2:
+        n += 1
+    integral = func(a) + func(b)
+    x = a
+    h = (b - a) / n
+    for i in range(1, n):
+        x += h
+        if i % 2:
+            integral += 4 * func(x)
+        else:
+            integral += 2 * func(x)
+    return h / 3 * integral
+
+
 args = [0, 1, 2, 3]
 Y = [0, 6, 3, 5]
 coefficients = [0.955, -0.687, -0.150, 0.352]
@@ -109,3 +126,10 @@ plt.plot(new_X, create_square_polynomial(poly_SLAE, new_X), 'r--', label='SLAE')
 plt.grid()
 plt.legend()
 plt.show()
+
+print('Integral:')
+print('Lagrange ', parabola_method(lambda x: lagrange(args, Y, x), 10))
+print('Newton ', parabola_method(lambda x: newton(args, Y, x), 10))
+print('Square ', parabola_method(lambda x: create_square_polynomial(poly, x), 10))
+print('SLAE ', parabola_method(lambda x: create_square_polynomial(poly_SLAE, x), 10))
+print('Spline ', parabola_method(f, 10))
