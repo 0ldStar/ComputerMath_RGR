@@ -77,14 +77,11 @@ def search_coefficients_SLAE(x, y, m):
     return coeff_poly
 
 
-def parabola_method(func, n):
+def parabola_method(func, n, h):
     a = 0
     b = 3
-    if n % 2:
-        n += 1
     integral = func(a) + func(b)
     x = a
-    h = (b - a) / n
     for i in range(1, n):
         x += h
         if i % 2:
@@ -92,6 +89,19 @@ def parabola_method(func, n):
         else:
             integral += 2 * func(x)
     return h / 3 * integral
+
+
+def derivative(func, power):
+    n = 2
+    a = 0
+    b = 3
+    h = (b - a) / n
+    while (abs(parabola_method(func, n, h / 2) - parabola_method(func, n, h))) > 10 ** power and n < 2000:
+        n += 1
+        if n % 2:
+            n += 1
+        h = (b - a) / n
+    return round(parabola_method(func, n, h), abs(power) + 1)
 
 
 def central_diff_ratio(m, x, y):
@@ -107,6 +117,8 @@ X = [0, 1, 2, 3]
 Y = [0, 6, 3, 5]
 point = 2.34
 args = np.arange(0, 3.01, 0.01)
+eps = 1e-3
+power = -3
 
 plt.title('interpolate')
 plt.plot(args, lagrange(X, Y, args), '--', label='lagrange')
@@ -136,17 +148,23 @@ plt.grid()
 plt.legend()
 plt.show()
 
-step = 10
-print('Integral:')
-print('Lagrange ', parabola_method(lambda x: lagrange(X, Y, x), step))
-print('Newton ', parabola_method(lambda x: newton(X, Y, x), step))
-print('Square ', parabola_method(lambda x: create_polynomial(poly, x), step))
-print('SLAE ', parabola_method(lambda x: create_polynomial(poly_SLAE, x), step))
-print('Spline ', parabola_method(lambda x: scipy.interpolate.splev(x, tck), step))
+print('\tPoint x = ', point)
+print('Lagrange ', lagrange(X, Y, point))
+print('Newton ', newton(X, Y, point))
+print('Square ', create_polynomial(poly, point))
+print('SLAE ', create_polynomial(poly_SLAE, point))
+print('Spline ', scipy.interpolate.splev(point, tck))
 
-print('\nDerivative x = ', point)
-print(central_diff_ratio(point, args, lagrange(X, Y, args)))
-print(central_diff_ratio(point, args, newton(X, Y, args)))
-print(central_diff_ratio(point, args, create_polynomial(poly, args)))
-print(central_diff_ratio(point, args, create_polynomial(poly_SLAE, args)))
-print(central_diff_ratio(point, args, sp_y))
+print('\n\tIntegral:')
+print('Lagrange ', derivative(lambda x: lagrange(X, Y, x), power))
+print('Newton ', derivative(lambda x: newton(X, Y, x), power))
+print('Square ', derivative(lambda x: create_polynomial(poly, x), power))
+print('SLAE ', derivative(lambda x: create_polynomial(poly_SLAE, x), power))
+print('Spline ', derivative(lambda x: scipy.interpolate.splev(x, tck), power))
+
+print('\n\tDerivative x = ', point)
+print('Lagrange ', central_diff_ratio(point, args, lagrange(X, Y, args)))
+print('Newton ', central_diff_ratio(point, args, newton(X, Y, args)))
+print('Square ', central_diff_ratio(point, args, create_polynomial(poly, args)))
+print('SLAE ', central_diff_ratio(point, args, create_polynomial(poly_SLAE, args)))
+print('Spline ', central_diff_ratio(point, args, sp_y))
